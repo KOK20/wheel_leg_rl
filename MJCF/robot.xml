@@ -1,0 +1,183 @@
+<mujoco model="GBC486.SLDASM">
+  <default>
+    <default class="touch">
+        <geom contype="1" conaffinity="1" />
+    </default>
+    <default class="untouch">
+        <geom contype="0" conaffinity="0" />
+    </default>
+  </default>
+  <compiler angle="radian"/>
+  
+  <asset>
+    <mesh name="base_link" file="base_link.STL"/>
+    <mesh name="AG" file="AG.STL"/>
+    <mesh name="GH" file="GH.STL"/>
+    <mesh name="wheel_right" file="wheel_right.STL"/>
+    <mesh name="AB" file="AB.STL"/>
+    <mesh name="BE" file="BE.STL"/>
+    <mesh name="EC" file="EC.STL"/>
+    <mesh name="CF" file="CF.STL"/>
+    <mesh name="IJ" file="IJ.STL"/>
+    <mesh name="JM" file="JM.STL"/>
+    <mesh name="MK" file="MK.STL"/>
+    <mesh name="KN" file="KN.STL"/>
+    <mesh name="IO" file="IO.STL"/>
+    <mesh name="OP" file="OP.STL"/>   
+    <mesh name="wheel_left" file="wheel_left.STL"/>
+    
+    <!-- 添加材质 -->
+    <material name="base_mat" rgba="0.2 0.2 0.25 1" specular="0.5" shininess="0.5"/>
+    <material name="arm_blue" rgba="0.3 0.5 0.8 1" specular="0.8" shininess="0.8"/>
+    <material name="arm_red" rgba="0.8 0.3 0.3 1" specular="0.8" shininess="0.8"/>
+    <material name="arm_green" rgba="0.3 0.8 0.4 1" specular="0.8" shininess="0.8"/>
+    <material name="joint_mat" rgba="0.7 0.7 0.75 1" specular="1.0" shininess="1.0"/>
+    <material name="wheel_mat" rgba="0.15 0.15 0.2 1" specular="0.3" shininess="0.2"/>
+    <material name="white_mat" rgba="0.95 0.95 0.97 1" specular="0.9" shininess="0.7"/>
+  </asset>
+
+  <worldbody>
+    <!-- <body name="base" pos="0 0 0.5" quat="0.9659258262890683 0 0.25881904510252076 0"> -->
+    <body name="base" pos="0 0 0.2" >
+    <!-- "扣雷挖及悠打"，注释下面这行代码可以让车身悬浮在空中 -->
+      <joint name="base_free" type="free"/>
+      <site name="imu" type="box" size="0.002 0.002 0.002"  rgba="1 1 0 1"/>
+      <geom type="mesh" material="base_mat" mesh="base_link" 
+        class="touch" mass="8.4"/>
+      
+
+      <!-- 右腿臂（蓝色系） -->
+      <body name="AG" pos="-0.01375 -0.1995 0.134" quat="0.707105 0.707108 0 0">
+        <joint name="jAG" pos="0 0 0" axis="0 0 1" range="-1.57 0.3"/>
+        <site name="AG-D" pos="-0.027 -0.094 0" size="0.002" rgba="0 1 0 1"/> 
+        <geom type="mesh" material="arm_blue" mesh="AG"
+          class="untouch" mass="0.667"/>
+
+        <body name="GH" pos="-0.060152 -0.20641 0.0345">
+          <joint name="jGH" pos="0 0 0" axis="0 0 1" range="-0.85 1"/>
+          <site name="GH-F" pos="-0.0604 0.0259 -0.03" size="0.01" rgba="0 1 0 1"/> 
+          <site name="GH-little_wheel" pos="-0.033 -0.062 -0.01" size="0.01" rgba="0 1 0 1"/> 
+          <geom type="mesh" material="joint_mat" mesh="GH"
+            class="touch" mass="1.64"/>
+
+          <body name="wheel_right" pos="0.25495 -0.039583 0.0155">
+            <joint name="jwheel_right" pos="0 0 0" axis="0 0 -1"/>
+            <geom type="mesh" material="arm_blue" mesh="wheel_right"
+            class="touch" mass="0.322"/>
+          </body>
+        </body>
+      </body>
+
+      <body name="AB" pos="-0.01375 -0.2155 0.134" quat="0.707105 0.707108 0 0">
+        <joint name="jAB" pos="0 0 0" axis="0 0 1" range="-1.57 0.5"/>
+        <geom type="mesh" material="joint_mat" mesh="AB"
+        class="untouch" mass="0.202"/>
+
+        <body name="BE" pos="0.097866 0.0051238 -0.013">
+          <joint name="jBE" pos="0 0 0" axis="0 0 1"/>
+          <geom type="mesh" material="arm_blue" mesh="BE"
+          class="touch" mass="0.057"/>
+
+          <body name="EC" pos="-0.0090761 -0.11725 0.0094">
+            <joint name="jEC" pos="0 0 0" axis="0 0 -1"/>
+            <site name="EC-D" pos="-0.115974 0.017382 -0.01" size="0.002" rgba="1 0 0 1"/> 
+            <geom type="mesh" material="joint_mat" mesh="EC"
+            class="touch" mass="0.128"/>
+
+            <body name="CF" pos="-0.17658 0.044698 -0.0124">
+              <joint name="jCF" pos="0 0 0" axis="0 0 -1"/>
+              <site name="CF-F" pos="-0.0332 -0.111 0" size="0.002" rgba="1 0 0 1"/> 
+              <geom type="mesh" material="arm_blue" mesh="CF"
+              class="touch" mass="0.057"/>
+            </body>
+          </body>
+        </body>
+      </body>
+      
+      <!-- 左腿（红色系） -->
+      <body name="IJ" pos="-0.01375 0.2165 0.134" quat="0.707105 0.707108 0 0">
+        <joint name="jIJ" pos="0 0 0" axis="0 0 -1" range="-0.5 1.57"/>
+        <geom type="mesh" material="joint_mat" mesh="IJ"
+        class="untouch" mass="0.202"/>
+
+        <body name="JM" pos="0.097866 0.0051238 0.013">
+          <joint name="jJM" pos="0 0 0" axis="0 0 -1"/>
+          <geom type="mesh" material="arm_red" mesh="JM"
+          class="touch" mass="0.057"/>
+
+          <body name="MK" pos="-0.0090761 -0.11725 -0.0094">
+            <joint name="jMK" pos="0 0 0" axis="0 0 -1"/>
+            <site name="MK-L" pos="-0.115974 0.017382 0.01" size="0.01" rgba="1 0 0 1"/> 
+            <geom type="mesh" material="joint_mat" mesh="MK"
+            class="touch" mass="0.128"/>
+
+            <body name="KN" pos="-0.17658 0.044698 0.0124">
+              <joint name="jKN" pos="0 0 0" axis="0 0 1"/>
+              <site name="KN-N" pos="-0.0332 -0.111 0" size="0.01" rgba="1 0 0 1"/> 
+              <geom type="mesh" material="arm_red" mesh="KN"
+              class="touch" mass="0.057"/>
+            </body>
+          </body>
+        </body>
+      </body>
+
+      <body name="IO" pos="-0.01375 0.2005 0.134" quat="0.707105 0.707108 0 0">
+        <joint name="jIO" pos="0 0 0" axis="0 0 -1" range="-0.3 1.57"/>
+        <site name="IO-L" pos="-0.027 -0.094 0" size="0.01" rgba="0 1 0 1"/> 
+        <geom type="mesh" material="arm_red" mesh="IO"
+        class="untouch" mass="0.667"/>
+
+        <body name="OP" pos="-0.060152 -0.20641 -0.0345">
+          <joint name="jOP" pos="0 0 0" axis="0 0 -1" range="-1 0.85"/>
+          <site name="OP-N" pos="-0.0604 0.0259 0.03" size="0.01" rgba="0 1 0 1"/> 
+          <geom type="mesh" material="joint_mat" mesh="OP"
+          class="touch" mass="1.64"/>
+
+          <body name="wheel_left" pos="0.25495 -0.039576 -0.0155">
+            <joint name="jwheel_left" pos="0 0 0" axis="0 0 1"/>
+            <geom type="mesh" material="arm_red" mesh="wheel_left"
+            class="touch" mass="0.322"/>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <equality>
+    <connect name="right_D" site1="EC-D" site2="AG-D" solref="0.001 1" solimp="0.99 0.99 0.01 0.5 2"/>
+    <connect name="right_F" site1="CF-F" site2="GH-F" solref="0.001 1" solimp="0.99 0.99 0.01 0.5 2"/>
+    <connect name="left_L" site1="IO-L" site2="MK-L" solref="0.001 1" solimp="0.99 0.99 0.01 0.5 2"/>
+    <connect name="left_F" site1="OP-N" site2="KN-N" solref="0.001 1" solimp="0.99 0.99 0.01 0.5 2"/>
+  </equality>
+
+  <actuator>
+    <general name="Right_front_joint_act" joint="jAB" gainprm="1" ctrlrange="-20 +20" />
+    <general name="Right_rear_joint_act"  joint="jAG"  gainprm="1" ctrlrange="-20 +20" />
+    <general name="Left_front_joint_act"  joint="jIJ"  gainprm="1" ctrlrange="-20 20"  />
+    <general name="Left_rear_joint_act"   joint="jIO"   gainprm="1" ctrlrange="-20 +20" />
+
+    <general name="Right_Wheel_act"       joint="jwheel_right" gainprm="1" ctrlrange="-4 +4"   />
+    <general name="Left_Wheel_act"        joint="jwheel_left"  gainprm="-1" ctrlrange="-4 +4"   />
+  </actuator>
+
+  
+    <sensor>
+      <!-- 四元数，wxyz -->
+      <framequat name='orientation' objtype='site' objname='imu' />
+      <!-- 陀螺仪，gx，gy，gz，方向以绕坐标轴右手定则为正向 -->
+      <gyro name='gyro' site='imu' />
+      <!-- 轮子的速度，单位rad/s -->
+      <jointpos joint="jwheel_right" name="Right_Wheel_pos"/>
+      <jointpos joint="jwheel_left"  name="Left_Wheel_pos" />
+      <!-- 关节的位置，单位rad -->
+      <jointpos joint="jAB" name="Right_front_joint_pos"/>
+      <jointpos joint="jAG" name="Right_rear_joint_pos"/>
+      <jointpos joint="jIJ" name="Left_front_joint_pos"/>
+      <jointpos joint="jIO" name="Left_rear_joint_pos"/>
+    </sensor>
+
+</mujoco>
+
+
+
+      
