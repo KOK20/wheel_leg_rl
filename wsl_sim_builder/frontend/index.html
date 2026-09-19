@@ -1,0 +1,814 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WSL MuJoCo 仿真生成器</title>
+  <style>
+    :root {
+      --bg: #eef1f4;
+      --panel: #ffffff;
+      --ink: #17202a;
+      --muted: #647282;
+      --line: #d7dde5;
+      --accent: #0f766e;
+      --accent-2: #c2410c;
+      --dark: #111827;
+      --code: #0b1220;
+      --code-ink: #dce7f7;
+      --ok: #15803d;
+      --bad: #b91c1c;
+      --warn: #a16207;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(15, 118, 110, .12), transparent 32%),
+        radial-gradient(circle at 80% 10%, rgba(194, 65, 12, .12), transparent 28%),
+        var(--bg);
+      font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    }
+    header {
+      padding: 18px 24px 14px;
+      background: rgba(255, 255, 255, .82);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+    .sub {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    main {
+      display: grid;
+      grid-template-columns: minmax(360px, 1fr) minmax(360px, 1fr);
+      gap: 16px;
+      padding: 16px;
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, .08);
+      overflow: hidden;
+    }
+    .bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #f8fafc;
+    }
+    .bar h2 {
+      margin: 0;
+      font-size: 15px;
+    }
+    .body {
+      padding: 14px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 430px;
+      resize: vertical;
+      border: 1px solid #263244;
+      border-radius: 8px;
+      padding: 12px;
+      background: var(--code);
+      color: var(--code-ink);
+      font: 13px/1.5 Consolas, "Cascadia Mono", monospace;
+      outline: none;
+    }
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, .18);
+    }
+    button, select, input {
+      font: inherit;
+    }
+    button {
+      border: 0;
+      border-radius: 7px;
+      padding: 9px 12px;
+      background: var(--dark);
+      color: #fff;
+      cursor: pointer;
+      transition: transform .12s ease, opacity .12s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    button.secondary { background: #334155; }
+    button.accent { background: var(--accent); }
+    button.warn { background: var(--accent-2); }
+    button:disabled { opacity: .55; cursor: wait; transform: none; }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .field {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .field input {
+      width: 74px;
+      border: 0;
+      outline: 0;
+      color: var(--ink);
+      background: transparent;
+    }
+    .wide {
+      grid-column: 1 / -1;
+    }
+    .status {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fbfcfd;
+    }
+    .metric .label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .metric .value {
+      margin-top: 5px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 14px;
+    }
+    canvas {
+      width: 100%;
+      height: 280px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+    #viewer {
+      height: 460px;
+      background: linear-gradient(#f8fbff, #eef5f2 58%, #dde8df 58%, #d4e1d8);
+    }
+    .viewer-shell {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 14px;
+      background: #f8fafc;
+    }
+    .viewer-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+    }
+    .viewer-toolbar input[type="range"] {
+      flex: 1;
+      min-width: 220px;
+      accent-color: var(--accent);
+    }
+    .viewer-toolbar select {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 8px;
+      background: #fff;
+    }
+    .time-pill {
+      min-width: 92px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    pre {
+      margin: 0;
+      max-height: 280px;
+      overflow: auto;
+      border-radius: 8px;
+      padding: 12px;
+      background: var(--code);
+      color: var(--code-ink);
+      font: 12px/1.45 Consolas, "Cascadia Mono", monospace;
+    }
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 10px 0;
+      font-size: 13px;
+    }
+    .links a { color: var(--accent); font-weight: 700; }
+    .message {
+      white-space: pre-wrap;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #ecfdf5;
+      color: var(--ok);
+      border: 1px solid #bbf7d0;
+      margin-bottom: 12px;
+    }
+    .message.error {
+      background: #fef2f2;
+      color: var(--bad);
+      border-color: #fecaca;
+    }
+    .message.warn {
+      background: #fffbeb;
+      color: var(--warn);
+      border-color: #fde68a;
+    }
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 8px;
+    }
+    @media (max-width: 980px) {
+      main { grid-template-columns: 1fr; }
+      .status { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>WSL MuJoCo 仿真生成器</h1>
+    <div class="sub">Windows 浏览器传入机械结构与控制函数，WSL 端生成 MJCF，也可以直接启动完整 MuJoCo 图形窗口。</div>
+  </header>
+
+  <main>
+    <section>
+      <div class="bar">
+        <h2>机械结构 JSON</h2>
+        <button class="secondary" id="loadDemo">载入 Demo</button>
+      </div>
+      <div class="body">
+        <div class="controls">
+          <button id="formatJson" class="secondary">格式化 JSON</button>
+          <button id="generateOnly">只生成 MJCF</button>
+        </div>
+        <textarea id="structureInput" spellcheck="false"></textarea>
+        <div class="hint">支持 body、joint、geom、actuator 的基础描述。名称需要是英文/数字/下划线，便于控制函数引用。</div>
+      </div>
+    </section>
+
+    <section>
+      <div class="bar">
+        <h2>控制函数 Python</h2>
+        <button class="accent" id="runSim">生成并运行</button>
+      </div>
+      <div class="body">
+        <div class="controls">
+          <label class="field">时长 <input id="duration" type="number" min="0.1" max="30" step="0.1" value="6"></label>
+          <label class="field">采样 Hz <input id="sampleHz" type="number" min="1" max="240" step="1" value="90"></label>
+          <button id="resetCode" class="secondary">恢复 Demo 控制</button>
+          <button id="launchGeneratedGui" class="warn">启动当前模型完整 GUI</button>
+        </div>
+        <textarea id="controlInput" spellcheck="false"></textarea>
+        <div class="hint">函数签名：<code>control(t, qpos, qvel, ctrl, state)</code>。可用 <code>math</code>、<code>np</code>，demo 环境只适合运行你信任的代码。</div>
+      </div>
+    </section>
+
+    <section class="wide">
+      <div class="bar">
+        <h2>仿真结果</h2>
+        <select id="signalSelect"></select>
+      </div>
+      <div class="body">
+        <div id="message" class="message warn">等待连接 WSL 后端...</div>
+        <div class="viewer-shell">
+          <div class="viewer-toolbar">
+            <button id="playToggle" class="accent">播放</button>
+            <button id="restartView" class="secondary">回到起点</button>
+            <button id="launchWheelLegGui" class="warn">启动轮腿 Demo 完整 GUI</button>
+            <select id="viewMode">
+              <option value="side">侧视 X-Z</option>
+              <option value="top">俯视 X-Y</option>
+              <option value="front">正视 Y-Z</option>
+            </select>
+            <label class="field">速度 <input id="playSpeed" type="number" min="0.1" max="4" step="0.1" value="1"></label>
+            <input id="timeline" type="range" min="0" max="0" step="1" value="0">
+            <span class="time-pill" id="viewTime">t=0.000s</span>
+          </div>
+          <canvas id="viewer" width="1200" height="520"></canvas>
+        </div>
+        <div class="status">
+          <div class="metric"><div class="label">Run ID</div><div class="value" id="runId">-</div></div>
+          <div class="metric"><div class="label">步数</div><div class="value" id="steps">-</div></div>
+          <div class="metric"><div class="label">采样点</div><div class="value" id="samples">-</div></div>
+          <div class="metric"><div class="label">关节/执行器</div><div class="value" id="counts">-</div></div>
+        </div>
+        <div class="links" id="artifactLinks"></div>
+        <div class="grid">
+          <canvas id="plot" width="900" height="320"></canvas>
+          <pre id="summary">{}</pre>
+        </div>
+        <h3>生成的 MJCF</h3>
+        <pre id="xmlPreview"></pre>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let demoPayload = null;
+    let lastResult = null;
+    let playIndex = 0;
+    let playing = false;
+    let playStartedAt = 0;
+    let playStartIndex = 0;
+    let viewerBounds = null;
+
+    function setMessage(text, type = "ok") {
+      const el = $("message");
+      el.textContent = text;
+      el.className = "message" + (type === "error" ? " error" : type === "warn" ? " warn" : "");
+    }
+
+    function setBusy(busy) {
+      for (const id of ["loadDemo", "formatJson", "generateOnly", "runSim", "resetCode", "launchGeneratedGui", "launchWheelLegGui"]) {
+        $(id).disabled = busy;
+      }
+    }
+
+    async function request(path, options = {}) {
+      const res = await fetch(path, options);
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || "请求失败");
+      return data;
+    }
+
+    function currentPayload() {
+      return {
+        duration: Number($("duration").value || 6),
+        sample_hz: Number($("sampleHz").value || 90),
+        structure: JSON.parse($("structureInput").value),
+        control_code: $("controlInput").value
+      };
+    }
+
+    async function loadDemo() {
+      setBusy(true);
+      try {
+        const data = await request("/api/demo");
+        demoPayload = data.payload;
+        $("structureInput").value = JSON.stringify(demoPayload.structure, null, 2);
+        $("controlInput").value = demoPayload.control_code;
+        $("duration").value = demoPayload.duration || 6;
+        $("sampleHz").value = demoPayload.sample_hz || 90;
+        setMessage("Demo 已载入，可以直接点击“生成并运行”。");
+      } catch (err) {
+        setMessage(err.message, "error");
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function populateSignals(result) {
+      const select = $("signalSelect");
+      select.innerHTML = "";
+      const names = [];
+      for (const joint of result.joints || []) names.push(`qpos.${joint}`);
+      for (const actuator of result.actuators || []) names.push(`ctrl.${actuator}`);
+      for (const name of names) {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        select.appendChild(option);
+      }
+    }
+
+    function valueAt(sample, signal) {
+      const [kind, name] = signal.split(".");
+      const value = sample[kind]?.[name];
+      if (Array.isArray(value)) return value[0] || 0;
+      return Number(value || 0);
+    }
+
+    function drawPlot() {
+      const canvas = $("plot");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = "#d7dde5";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = 24 + i * ((canvas.height - 48) / 4);
+        ctx.beginPath();
+        ctx.moveTo(44, y);
+        ctx.lineTo(canvas.width - 18, y);
+        ctx.stroke();
+      }
+      if (!lastResult || !lastResult.series?.length) return;
+      const signal = $("signalSelect").value;
+      const points = lastResult.series.map(s => ({ t: s.t, y: valueAt(s, signal) }));
+      const minT = points[0].t;
+      const maxT = points[points.length - 1].t || 1;
+      let minY = Math.min(...points.map(p => p.y));
+      let maxY = Math.max(...points.map(p => p.y));
+      if (Math.abs(maxY - minY) < 1e-9) {
+        minY -= 1;
+        maxY += 1;
+      }
+      const x0 = 44, y0 = 20, w = canvas.width - 64, h = canvas.height - 48;
+      ctx.strokeStyle = "#0f766e";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      points.forEach((p, idx) => {
+        const x = x0 + ((p.t - minT) / (maxT - minT || 1)) * w;
+        const y = y0 + (1 - (p.y - minY) / (maxY - minY)) * h;
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.fillStyle = "#17202a";
+      ctx.font = "13px Microsoft YaHei, Segoe UI";
+      ctx.fillText(signal, 52, 18);
+      ctx.fillStyle = "#647282";
+      ctx.fillText(`min ${minY.toFixed(3)} / max ${maxY.toFixed(3)}`, 52, canvas.height - 12);
+    }
+
+    function geomMap(result) {
+      const map = new Map();
+      for (const geom of result?.visual_model?.geoms || []) map.set(geom.name, geom);
+      return map;
+    }
+
+    function axisFromXmat(xmat, axis) {
+      if (!Array.isArray(xmat) || xmat.length < 9) return [axis === 0 ? 1 : 0, axis === 1 ? 1 : 0, axis === 2 ? 1 : 0];
+      return [xmat[axis], xmat[3 + axis], xmat[6 + axis]];
+    }
+
+    function viewPoint(pos, mode) {
+      if (mode === "top") return [pos[0], pos[1]];
+      if (mode === "front") return [pos[1], pos[2]];
+      return [pos[0], pos[2]];
+    }
+
+    function colorFromRgba(rgba, fallback = "rgba(23,32,42,.88)") {
+      if (!Array.isArray(rgba) || rgba.length < 3) return fallback;
+      const alpha = rgba.length > 3 ? rgba[3] : 1;
+      return `rgba(${Math.round(rgba[0] * 255)},${Math.round(rgba[1] * 255)},${Math.round(rgba[2] * 255)},${alpha})`;
+    }
+
+    function computeViewerBounds(result) {
+      const geoms = geomMap(result);
+      const mode = $("viewMode").value;
+      let minA = Infinity, maxA = -Infinity, minB = Infinity, maxB = -Infinity;
+      for (const sample of result?.series || []) {
+        for (const pose of sample.geom_pose || []) {
+          const geom = geoms.get(pose.name);
+          if (!geom || geom.type === "plane") continue;
+          const p = viewPoint(pose.pos, mode);
+          const radius = Math.max(...(geom.size || [0.05]).map(Number), 0.05);
+          minA = Math.min(minA, p[0] - radius);
+          maxA = Math.max(maxA, p[0] + radius);
+          minB = Math.min(minB, p[1] - radius);
+          maxB = Math.max(maxB, p[1] + radius);
+        }
+      }
+      if (!Number.isFinite(minA)) return { minA: -1, maxA: 1, minB: -0.2, maxB: 1 };
+      const padA = Math.max(0.25, (maxA - minA) * 0.16);
+      const padB = Math.max(0.25, (maxB - minB) * 0.22);
+      return { minA: minA - padA, maxA: maxA + padA, minB: minB - padB, maxB: maxB + padB };
+    }
+
+    function drawCapsule(ctx, geom, pose, project, scale) {
+      const radius = (geom.size?.[0] || 0.025) * scale;
+      const half = geom.size?.[1] || 0;
+      const axis = axisFromXmat(pose.xmat, 2);
+      const p0 = [
+        pose.pos[0] - axis[0] * half,
+        pose.pos[1] - axis[1] * half,
+        pose.pos[2] - axis[2] * half
+      ];
+      const p1 = [
+        pose.pos[0] + axis[0] * half,
+        pose.pos[1] + axis[1] * half,
+        pose.pos[2] + axis[2] * half
+      ];
+      const a = project(p0);
+      const b = project(p1);
+      ctx.lineWidth = Math.max(2, radius * 2);
+      ctx.lineCap = geom.type === "cylinder" ? "butt" : "round";
+      ctx.strokeStyle = colorFromRgba(geom.rgba);
+      ctx.beginPath();
+      ctx.moveTo(a[0], a[1]);
+      ctx.lineTo(b[0], b[1]);
+      ctx.stroke();
+      ctx.lineCap = "butt";
+    }
+
+    function drawBox(ctx, geom, pose, project, scale) {
+      const size = geom.size || [0.05, 0.05, 0.05];
+      const mode = $("viewMode").value;
+      const axes = mode === "top" ? [0, 1] : mode === "front" ? [1, 2] : [0, 2];
+      const ax0 = axisFromXmat(pose.xmat, axes[0]);
+      const ax1 = axisFromXmat(pose.xmat, axes[1]);
+      const corners = [
+        [-1, -1], [1, -1], [1, 1], [-1, 1]
+      ].map(([s0, s1]) => project([
+        pose.pos[0] + ax0[0] * size[axes[0]] * s0 + ax1[0] * size[axes[1]] * s1,
+        pose.pos[1] + ax0[1] * size[axes[0]] * s0 + ax1[1] * size[axes[1]] * s1,
+        pose.pos[2] + ax0[2] * size[axes[0]] * s0 + ax1[2] * size[axes[1]] * s1
+      ]));
+      ctx.fillStyle = colorFromRgba(geom.rgba);
+      ctx.strokeStyle = "rgba(15,23,42,.22)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      corners.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    function drawViewer(index = playIndex) {
+      const canvas = $("viewer");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#f7fbff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (!lastResult?.series?.length) {
+        ctx.fillStyle = "#647282";
+        ctx.font = "18px Microsoft YaHei, Segoe UI";
+        ctx.fillText("运行仿真后这里会显示图形化回放", 34, 52);
+        return;
+      }
+      const sample = lastResult.series[Math.max(0, Math.min(index, lastResult.series.length - 1))];
+      const geoms = geomMap(lastResult);
+      const mode = $("viewMode").value;
+      viewerBounds = viewerBounds || computeViewerBounds(lastResult);
+      const { minA, maxA, minB, maxB } = viewerBounds;
+      const sx = canvas.width / (maxA - minA || 1);
+      const sy = canvas.height / (maxB - minB || 1);
+      const scale = Math.min(sx, sy);
+      const offsetX = (canvas.width - (maxA - minA) * scale) / 2;
+      const offsetY = (canvas.height - (maxB - minB) * scale) / 2;
+      const project = (pos) => {
+        const p = viewPoint(pos, mode);
+        return [
+          offsetX + (p[0] - minA) * scale,
+          canvas.height - (offsetY + (p[1] - minB) * scale)
+        ];
+      };
+
+      ctx.strokeStyle = "rgba(100,114,130,.20)";
+      ctx.lineWidth = 1;
+      for (let g = Math.ceil(minA); g <= Math.floor(maxA); g++) {
+        const x = project(mode === "front" ? [0, g, minB] : [g, 0, minB])[0];
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      const ground = project([0, 0, 0])[1];
+      ctx.strokeStyle = "rgba(15,23,42,.45)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, ground);
+      ctx.lineTo(canvas.width, ground);
+      ctx.stroke();
+
+      const poses = (sample.geom_pose || []).slice().sort((a, b) => {
+        const ga = geoms.get(a.name), gb = geoms.get(b.name);
+        return (ga?.type === "plane" ? -1 : 0) - (gb?.type === "plane" ? -1 : 0);
+      });
+      for (const pose of poses) {
+        const geom = geoms.get(pose.name);
+        if (!geom || geom.type === "plane" || (geom.rgba?.[3] ?? 1) <= 0.01) continue;
+        if (geom.type === "sphere" || geom.type === "ellipsoid") {
+          const p = project(pose.pos);
+          const r = Math.max(2, (geom.size?.[0] || 0.04) * scale);
+          ctx.fillStyle = colorFromRgba(geom.rgba);
+          ctx.beginPath();
+          ctx.arc(p[0], p[1], r, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (geom.type === "capsule" || geom.type === "cylinder") {
+          drawCapsule(ctx, geom, pose, project, scale);
+        } else if (geom.type === "box") {
+          drawBox(ctx, geom, pose, project, scale);
+        }
+      }
+      ctx.fillStyle = "rgba(17,24,39,.82)";
+      ctx.font = "14px Microsoft YaHei, Segoe UI";
+      ctx.fillText(`${mode === "side" ? "侧视 X-Z" : mode === "top" ? "俯视 X-Y" : "正视 Y-Z"}  t=${sample.t.toFixed(3)}s`, 16, 24);
+      $("viewTime").textContent = `t=${sample.t.toFixed(3)}s`;
+    }
+
+    function setPlayIndex(index) {
+      playIndex = Math.max(0, Math.min(index, (lastResult?.series?.length || 1) - 1));
+      $("timeline").value = String(playIndex);
+      drawViewer(playIndex);
+    }
+
+    function animateViewer(timestamp) {
+      if (!playing || !lastResult?.series?.length) return;
+      if (!playStartedAt) playStartedAt = timestamp;
+      const speed = Math.max(0.1, Number($("playSpeed").value || 1));
+      const elapsed = ((timestamp - playStartedAt) / 1000) * speed;
+      const startT = lastResult.series[playStartIndex]?.t || 0;
+      const targetT = startT + elapsed;
+      let next = playStartIndex;
+      while (next < lastResult.series.length - 1 && lastResult.series[next].t < targetT) next++;
+      if (next >= lastResult.series.length - 1) {
+        playing = false;
+        $("playToggle").textContent = "播放";
+      }
+      setPlayIndex(next);
+      if (playing) requestAnimationFrame(animateViewer);
+    }
+
+    function togglePlayback() {
+      if (!lastResult?.series?.length) return;
+      playing = !playing;
+      $("playToggle").textContent = playing ? "暂停" : "播放";
+      if (playing) {
+        if (playIndex >= lastResult.series.length - 1) playIndex = 0;
+        playStartIndex = playIndex;
+        playStartedAt = 0;
+        requestAnimationFrame(animateViewer);
+      }
+    }
+
+    function renderResult(result) {
+      lastResult = result;
+      $("runId").textContent = result.run_id || "-";
+      $("steps").textContent = result.steps ?? "-";
+      $("samples").textContent = result.samples ?? "-";
+      $("counts").textContent = `${(result.joints || []).length}/${(result.actuators || []).length}`;
+      $("summary").textContent = JSON.stringify(result.summary || {}, null, 2);
+      $("xmlPreview").textContent = result.xml || "";
+      const links = $("artifactLinks");
+      links.innerHTML = "";
+      for (const [label, href] of Object.entries(result.files || {})) {
+        const a = document.createElement("a");
+        a.href = href;
+        a.target = "_blank";
+        a.textContent = label;
+        links.appendChild(a);
+      }
+      populateSignals(result);
+      drawPlot();
+      viewerBounds = computeViewerBounds(result);
+      $("timeline").max = String(Math.max(0, (result.series || []).length - 1));
+      setPlayIndex(0);
+    }
+
+    function renderLaunch(result) {
+      $("runId").textContent = result.run_id || "-";
+      $("steps").textContent = "-";
+      $("samples").textContent = "-";
+      $("counts").textContent = "GUI";
+      if (result.xml) $("xmlPreview").textContent = result.xml;
+      const links = $("artifactLinks");
+      links.innerHTML = "";
+      for (const [label, href] of Object.entries(result.files || {})) {
+        const a = document.createElement("a");
+        a.href = href;
+        a.target = "_blank";
+        a.textContent = label;
+        links.appendChild(a);
+      }
+      $("summary").textContent = JSON.stringify({
+        mode: result.mode,
+        pid: result.pid,
+        message: result.message,
+        note: "完整 GUI 窗口由 WSL 启动；网页负责部署请求和日志入口。"
+      }, null, 2);
+      setMessage(`${result.message}\nPID: ${result.pid}\n如果没有看到 MuJoCo 窗口，请检查 WSLg/图形桌面是否可用，并打开 gui_log 查看错误。`);
+    }
+
+    $("loadDemo").addEventListener("click", loadDemo);
+    $("resetCode").addEventListener("click", () => {
+      if (demoPayload) $("controlInput").value = demoPayload.control_code;
+    });
+    $("formatJson").addEventListener("click", () => {
+      try {
+        $("structureInput").value = JSON.stringify(JSON.parse($("structureInput").value), null, 2);
+        setMessage("JSON 格式化完成。");
+      } catch (err) {
+        setMessage("JSON 解析失败：" + err.message, "error");
+      }
+    });
+    $("generateOnly").addEventListener("click", async () => {
+      setBusy(true);
+      try {
+        const payload = currentPayload();
+        const result = await request("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        renderResult({ ...result, summary: { note: "只生成 MJCF，未运行仿真。" } });
+        setMessage("MJCF 已生成。");
+      } catch (err) {
+        setMessage(err.message, "error");
+      } finally {
+        setBusy(false);
+      }
+    });
+    $("runSim").addEventListener("click", async () => {
+      setBusy(true);
+      setMessage("WSL 正在生成 MJCF 并运行 MuJoCo...", "warn");
+      try {
+        const payload = currentPayload();
+        const result = await request("/api/run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        renderResult(result);
+        setMessage("仿真完成。");
+      } catch (err) {
+        setMessage(err.message, "error");
+      } finally {
+        setBusy(false);
+      }
+    });
+    $("launchGeneratedGui").addEventListener("click", async () => {
+      setBusy(true);
+      setMessage("正在请求 WSL 启动当前模型完整 MuJoCo GUI...", "warn");
+      try {
+        const payload = currentPayload();
+        const result = await request("/api/launch/generated", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        renderLaunch(result);
+      } catch (err) {
+        setMessage(err.message, "error");
+      } finally {
+        setBusy(false);
+      }
+    });
+    $("launchWheelLegGui").addEventListener("click", async () => {
+      setBusy(true);
+      setMessage("正在请求 WSL 启动轮腿 Demo 完整 MuJoCo GUI...", "warn");
+      try {
+        const result = await request("/api/launch/wheel-leg", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status_interval: 1.0 })
+        });
+        renderLaunch(result);
+      } catch (err) {
+        setMessage(err.message, "error");
+      } finally {
+        setBusy(false);
+      }
+    });
+    $("signalSelect").addEventListener("change", drawPlot);
+    $("viewMode").addEventListener("change", () => {
+      viewerBounds = computeViewerBounds(lastResult);
+      drawViewer(playIndex);
+    });
+    $("timeline").addEventListener("input", () => {
+      playing = false;
+      $("playToggle").textContent = "播放";
+      setPlayIndex(Number($("timeline").value || 0));
+    });
+    $("playToggle").addEventListener("click", togglePlayback);
+    $("restartView").addEventListener("click", () => {
+      playing = false;
+      $("playToggle").textContent = "播放";
+      setPlayIndex(0);
+    });
+
+    request("/api/health")
+      .then(() => loadDemo())
+      .catch(err => setMessage("无法连接后端：" + err.message, "error"));
+  </script>
+</body>
+</html>

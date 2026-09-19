@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<mujoco model="motor_pendulum_demo">
+  <compiler angle="radian" autolimits="true"/>
+  <option timestep="0.002" gravity="0 0 -9.81" solver="Newton" iterations="80"/>
+  <worldbody>
+    <light pos="0 -3 4" dir="0 1 -1"/>
+    <geom name="floor" type="plane" size="10 10 .1" rgba=".22 .24 .25 1" friction="1.0 0.01 0.001"/>
+    <geom type="box" name="demo_base" pos="0 0 0.48" size="0.16 0.16 0.04" rgba="0.18 0.23 0.27 1" density="0"/>
+    <body name="pendulum" pos="0 0 0.48">
+      <joint name="hinge" type="hinge" axis="0 1 0" range="-3.14 3.14" damping="0.04"/>
+      <geom type="capsule" name="rod" size="0.025" fromto="0 0 0 0 0 -0.56" rgba="0.18 0.47 0.84 1" density="450"/>
+      <geom type="sphere" name="tip_mass" pos="0 0 -0.59" size="0.07" rgba="0.92 0.34 0.25 1" density="900"/>
+    </body>
+  </worldbody>
+  <actuator>
+    <motor name="hinge_motor" joint="hinge" gear="1" ctrlrange="-3 3" ctrllimited="true"/>
+  </actuator>
+</mujoco>

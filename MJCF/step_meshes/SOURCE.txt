@@ -1,0 +1,15 @@
+source=<redacted source assembly>
+sha256=<redacted>
+step_volumes=479
+mesh_size_mm=4.0
+chassis: volumes=343 triangles=473910 files=chassis_1.stl,chassis_2.stl,chassis_3.stl
+left_liangan1: volumes=1 triangles=2896
+left_liangan2: volumes=1 triangles=2592
+left_liangan3: volumes=1 triangles=2278
+left_liangan4: volumes=1 triangles=2272
+left_wheel: volumes=24 triangles=39846
+right_liangan1: volumes=1 triangles=2900
+right_liangan2: volumes=1 triangles=2596
+right_liangan3: volumes=1 triangles=2278
+right_liangan4: volumes=1 triangles=2270
+right_wheel: volumes=24 triangles=39850

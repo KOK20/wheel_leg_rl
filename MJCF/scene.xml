@@ -1,0 +1,167 @@
+<mujoco model="wheel leg from requested STEP">
+  <compiler angle="radian" meshdir="step_meshes" autolimits="true"/>
+  <option timestep="0.001" gravity="0 0 -9.81" solver="Newton" iterations="100"/>
+
+  <default>
+    <joint axis="0 1 0" damping=".05"/>
+    <geom contype="0" conaffinity="0"/>
+    <default class="leg_joint">
+      <joint margin=".08" solreflimit=".002 1" solimplimit=".99 .999 .001"/>
+    </default>
+    <default class="visual">
+      <geom type="mesh" density="0" group="3"/>
+    </default>
+    <default class="fast_visual">
+      <geom type="capsule" size=".012" density="0" contype="0" conaffinity="0" group="2"/>
+    </default>
+    <default class="collision">
+      <geom contype="1" conaffinity="1" friction=".7 0.01 0.001" condim="4" rgba="0 0 0 0"/>
+    </default>
+  </default>
+
+  <asset>
+    <texture name="ground" type="2d" builtin="checker" rgb1=".18 .22 .24" rgb2=".28 .32 .34" width="512" height="512"/>
+    <material name="ground" texture="ground" texrepeat="5 5" reflectance=".15"/>
+    <material name="terrain_ramp" rgba=".48 .62 .50 1" reflectance=".10"/>
+    <material name="terrain_step" rgba=".78 .62 .38 1" reflectance=".08"/>
+    <material name="terrain_jump" rgba=".38 .58 .86 1" reflectance=".10"/>
+    <mesh name="chassis_1" file="chassis_1.stl"/>
+    <mesh name="chassis_2" file="chassis_2.stl"/>
+    <mesh name="chassis_3" file="chassis_3.stl"/>
+    <mesh name="left_liangan1" file="left_liangan1.stl"/>
+    <mesh name="left_liangan2" file="left_liangan2.stl"/>
+    <mesh name="left_liangan3" file="left_liangan3.stl"/>
+    <mesh name="left_liangan4" file="left_liangan4.stl"/>
+    <mesh name="left_wheel" file="left_wheel.stl"/>
+    <mesh name="right_liangan1" file="right_liangan1.stl"/>
+    <mesh name="right_liangan2" file="right_liangan2.stl"/>
+    <mesh name="right_liangan3" file="right_liangan3.stl"/>
+    <mesh name="right_liangan4" file="right_liangan4.stl"/>
+    <mesh name="right_wheel" file="right_wheel.stl"/>
+  </asset>
+
+  <worldbody>
+    <light pos="0 -2 3" dir="0 1 -1"/>
+    <geom name="floor" type="plane" size="20 20 .1" material="ground" class="collision" rgba="1 1 1 1"/>
+    <!-- Course starts after the default validation distance, so ordinary flat-ground tests stay unchanged. -->
+    <geom name="terrain_up_slope" type="box" pos="4.30 0 .047" size=".60 .55 .025" euler="0 -.12 0" material="terrain_ramp" class="collision" density="0" rgba=".48 .62 .50 1"/>
+    <geom name="terrain_top_platform" type="box" pos="5.55 0 .119" size=".65 .55 .025" material="terrain_ramp" class="collision" density="0" rgba=".52 .66 .54 1"/>
+    <geom name="terrain_down_slope" type="box" pos="6.80 0 .047" size=".60 .55 .025" euler="0 .12 0" material="terrain_ramp" class="collision" density="0" rgba=".48 .62 .50 1"/>
+    <geom name="terrain_low_step_lead_in" type="box" pos="7.66 0 .013" size=".14 .55 .008" euler="0 -.09 0" material="terrain_step" class="collision" density="0" rgba=".72 .58 .36 1"/>
+    <geom name="terrain_low_step" type="box" pos="7.85 0 .0125" size=".075 .55 .0125" material="terrain_step" class="collision" density="0" rgba=".78 .62 .38 1"/>
+    <geom name="terrain_mid_step_lead_in" type="box" pos="8.04 0 .019" size=".14 .55 .010" euler="0 -.13 0" material="terrain_step" class="collision" density="0" rgba=".76 .61 .39 1"/>
+    <geom name="terrain_mid_step" type="box" pos="8.25 0 .018" size=".085 .55 .018" material="terrain_step" class="collision" density="0" rgba=".82 .66 .42 1"/>
+    <geom name="terrain_left_offset_step_lead_in" type="box" pos="8.42 -.18 .017" size=".13 .22 .009" euler="0 -.12 0" material="terrain_step" class="collision" density="0" rgba=".80 .65 .41 1"/>
+    <geom name="terrain_left_offset_step" type="box" pos="8.65 -.18 .016" size=".10 .22 .016" material="terrain_step" class="collision" density="0" rgba=".86 .70 .44 1"/>
+    <geom name="terrain_right_offset_step_lead_in" type="box" pos="8.72 .18 .017" size=".13 .22 .009" euler="0 -.12 0" material="terrain_step" class="collision" density="0" rgba=".80 .65 .41 1"/>
+    <geom name="terrain_right_offset_step" type="box" pos="8.95 .18 .016" size=".10 .22 .016" material="terrain_step" class="collision" density="0" rgba=".86 .70 .44 1"/>
+    <geom name="terrain_jump_level1" type="box" pos="11.35 0 .035" size=".42 .55 .035" material="terrain_jump" class="collision" density="0" friction="1.35 0.02 0.002" rgba=".38 .58 .86 1"/>
+    <geom name="terrain_jump_lip_level1_front" type="capsule" pos="10.93 0 .045" size=".025 .55" quat=".707107 .707107 0 0" material="terrain_jump" class="collision" density="0" friction="1.35 0.02 0.002" rgba=".38 .58 .86 1"/>
+    <geom name="terrain_jump_level2" type="box" pos="12.20 0 .060" size=".42 .55 .060" material="terrain_jump" class="collision" density="0" friction="1.35 0.02 0.002" rgba=".34 .52 .82 1"/>
+    <geom name="terrain_jump_lip_level2_front" type="capsule" pos="11.78 0 .095" size=".025 .55" quat=".707107 .707107 0 0" material="terrain_jump" class="collision" density="0" friction="1.35 0.02 0.002" rgba=".34 .52 .82 1"/>
+    <geom name="terrain_jump_landing" type="box" pos="13.05 0 .060" size=".42 .55 .060" material="terrain_jump" class="collision" density="0" friction="1.35 0.02 0.002" rgba=".34 .52 .82 1"/>
+    <geom name="terrain_jump_lip_landing_front" type="capsule" pos="12.63 0 .095" size=".025 .55" quat=".707107 .707107 0 0" material="terrain_jump" class="collision" density="0" friction="1.35 0.02 0.002" rgba=".34 .52 .82 1"/>
+    <body name="robot" pos="0 0 .0765">
+      <joint name="root_x" type="slide" axis="1 0 0" damping=".1"/>
+      <joint name="root_y" type="slide" axis="0 1 0" damping=".1"/>
+      <joint name="root_z" type="slide" axis="0 0 1" damping=".1"/>
+      <joint name="root_yaw" type="hinge" axis="0 0 1" damping=".1"/>
+      <joint name="root_roll" type="hinge" axis="1 0 0" damping=".1"/>
+      <joint name="root_pitch" type="hinge" axis="0 1 0" damping=".1"/>
+      <inertial pos="0 0 .05" mass="5.0" diaginertia=".035 .025 .025"/>
+      <geom class="visual" mesh="chassis_1" rgba=".72 .75 .78 1"/>
+      <geom class="visual" mesh="chassis_2" rgba=".72 .75 .78 1"/>
+      <geom class="visual" mesh="chassis_3" rgba=".72 .75 .78 1"/>
+      <geom type="box" pos="0 0 .045" size=".115 .105 .045" density="0" contype="0" conaffinity="0" group="2" rgba=".72 .75 .78 1"/>
+      <geom name="chassis_collision" type="box" pos="0 0 .045" size=".118 .108 .047" density="0" class="collision"/>
+
+      <body name="left_rear_drive" pos=".044 -.0995 .053">
+        <joint name="left_rear_hip" range=".036578 2.063914" class="leg_joint"/>
+        <inertial pos=".035 0 .022" mass=".12" diaginertia=".00025 .00025 .00002"/>
+        <geom class="visual" mesh="left_liangan4" pos="-.044 .0995 -.053" rgba=".15 .35 .85 1"/>
+        <geom class="fast_visual" fromto="0 0 0 .072743 -.0085 .042005" rgba=".15 .35 .85 1"/>
+        <body name="left_rear_rod" pos=".072743 -.0085 .042005">
+          <joint name="left_rear_knee" range="-2.063041 -.319139" class="leg_joint"/>
+          <inertial pos="-.055 0 -.055" mass=".18" diaginertia=".0005 .0005 .00003"/>
+          <geom class="visual" mesh="left_liangan2" pos="-.116743 .108 -.095005" rgba=".18 .42 .95 1"/>
+          <geom class="fast_visual" fromto="0 0 0 -.116743 .003 -.109412" rgba=".18 .42 .95 1"/>
+          <body name="left_wheel_body" pos="-.116743 .003 -.109412">
+            <joint name="left_wheel_joint" damping=".01"/>
+            <inertial pos="0 -.038 0" mass=".9" diaginertia=".0012 .0007 .0012"/>
+            <site name="left_wheel_center" size=".004"/>
+            <geom class="visual" mesh="left_wheel" pos="0 .105 .014407" rgba=".10 .10 .12 1"/>
+            <geom type="cylinder" pos="0 -.038 0" size=".0625 .020" quat=".707107 .707107 0 0" density="0" contype="0" conaffinity="0" group="2" rgba=".10 .10 .12 1"/>
+            <geom name="left_wheel_collision" type="cylinder" pos="0 -.038 0" size=".0625 .020" quat=".707107 .707107 0 0" class="collision"/>
+          </body>
+        </body>
+      </body>
+      <body name="left_front_drive" pos="-.044 -.092 .053">
+        <joint name="left_front_hip" range="4.219272 6.246607" class="leg_joint"/>
+        <inertial pos=".035 0 .022" mass=".12" diaginertia=".00025 .00025 .00002"/>
+        <geom class="visual" mesh="left_liangan3" pos=".044 .092 -.053" rgba=".10 .28 .72 1"/>
+        <geom class="fast_visual" fromto="0 0 0 -.072743 -.0085 .042005" rgba=".10 .28 .72 1"/>
+        <body name="left_front_rod" pos="-.072743 -.0085 .042005">
+          <joint name="left_front_knee" range="-5.964046 -4.220144" class="leg_joint"/>
+          <inertial pos="-.055 0 -.055" mass=".18" diaginertia=".0005 .0005 .00003"/>
+          <geom class="visual" mesh="left_liangan1" pos=".116743 .1005 -.095005" rgba=".12 .34 .82 1"/>
+          <geom class="fast_visual" fromto="0 0 0 .116743 -.0045 -.109412" rgba=".12 .34 .82 1"/>
+          <site name="left_loop_end" pos=".116743 -.0045 -.109412" size=".004"/>
+        </body>
+      </body>
+
+      <body name="right_rear_drive" pos=".044 .0995 .053">
+        <joint name="right_rear_hip" range=".036578 2.063914" class="leg_joint"/>
+        <inertial pos=".035 0 .022" mass=".12" diaginertia=".00025 .00025 .00002"/>
+        <geom class="visual" mesh="right_liangan3" pos="-.044 -.0995 -.053" rgba=".85 .25 .18 1"/>
+        <geom class="fast_visual" fromto="0 0 0 .072743 .0085 .042005" rgba=".85 .25 .18 1"/>
+        <body name="right_rear_rod" pos=".072743 .0085 .042005">
+          <joint name="right_rear_knee" range="-2.063041 -.319139" class="leg_joint"/>
+          <inertial pos="-.055 0 -.055" mass=".18" diaginertia=".0005 .0005 .00003"/>
+          <geom class="visual" mesh="right_liangan1" pos="-.116743 -.108 -.095005" rgba=".95 .32 .22 1"/>
+          <geom class="fast_visual" fromto="0 0 0 -.116743 -.003 -.109412" rgba=".95 .32 .22 1"/>
+          <body name="right_wheel_body" pos="-.116743 -.003 -.109412">
+            <joint name="right_wheel_joint" damping=".01"/>
+            <inertial pos="0 .038 0" mass=".9" diaginertia=".0012 .0007 .0012"/>
+            <site name="right_wheel_center" size=".004"/>
+            <geom class="visual" mesh="right_wheel" pos="0 -.105 .014407" rgba=".10 .10 .12 1"/>
+            <geom type="cylinder" pos="0 .038 0" size=".0625 .020" quat=".707107 .707107 0 0" density="0" contype="0" conaffinity="0" group="2" rgba=".10 .10 .12 1"/>
+            <geom name="right_wheel_collision" type="cylinder" pos="0 .038 0" size=".0625 .020" quat=".707107 .707107 0 0" class="collision"/>
+          </body>
+        </body>
+      </body>
+      <body name="right_front_drive" pos="-.044 .092 .053">
+        <joint name="right_front_hip" range="4.219272 6.246607" class="leg_joint"/>
+        <inertial pos=".035 0 .022" mass=".12" diaginertia=".00025 .00025 .00002"/>
+        <geom class="visual" mesh="right_liangan4" pos=".044 -.092 -.053" rgba=".72 .18 .12 1"/>
+        <geom class="fast_visual" fromto="0 0 0 -.072743 .0085 .042005" rgba=".72 .18 .12 1"/>
+        <body name="right_front_rod" pos="-.072743 .0085 .042005">
+          <joint name="right_front_knee" range="-5.964046 -4.220144" class="leg_joint"/>
+          <inertial pos="-.055 0 -.055" mass=".18" diaginertia=".0005 .0005 .00003"/>
+          <geom class="visual" mesh="right_liangan2" pos=".116743 -.1005 -.095005" rgba=".82 .22 .15 1"/>
+          <geom class="fast_visual" fromto="0 0 0 .116743 .0045 -.109412" rgba=".82 .22 .15 1"/>
+          <site name="right_loop_end" pos=".116743 .0045 -.109412" size=".004"/>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <equality>
+    <connect name="left_loop" site1="left_wheel_center" site2="left_loop_end" solref=".003 1"/>
+    <connect name="right_loop" site1="right_wheel_center" site2="right_loop_end" solref=".003 1"/>
+  </equality>
+
+  <actuator>
+    <motor name="Left_front_joint_actuator" joint="left_front_hip" forcerange="-8 8"/>
+    <motor name="Left_rear_joint_actuator" joint="left_rear_hip" forcerange="-8 8"/>
+    <motor name="Left_Wheel_joint_actuator" joint="left_wheel_joint" forcerange="-4 4"/>
+    <motor name="Right_front_joint_actuator" joint="right_front_hip" forcerange="-8 8"/>
+    <motor name="Right_rear_joint_actuator" joint="right_rear_hip" forcerange="-8 8"/>
+    <motor name="Right_Wheel_joint_actuator" joint="right_wheel_joint" forcerange="-4 4"/>
+    <!-- Compensates MuJoCo's isotropic cylinder contact, which over-resists differential-drive yaw. -->
+    <motor name="Yaw_assist_actuator" joint="root_yaw" forcerange="-6 6"/>
+  </actuator>
+
+  <keyframe>
+    <key name="home" qpos="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"/>
+  </keyframe>
+</mujoco>

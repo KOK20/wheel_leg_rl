@@ -1,0 +1,4 @@
+Generated MuJoCo GUI started.
+request=/home/gyj/parallel_wheel_leg_mujoco/wsl_sim_builder/generated/20260617-152734-b92e28e7/request.json
+xml=/home/gyj/parallel_wheel_leg_mujoco/wsl_sim_builder/generated/20260617-152734-b92e28e7/scene.xml
+actuators=['hinge_motor']
